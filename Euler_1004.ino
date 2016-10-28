@@ -45,15 +45,18 @@
 */
 
 #include "NAxisMotion.h"        //Contains the bridge code between the API and the Arduino Environment
+#include "avr/wdt.h"
 #include <Wire.h>
 
 const int LED = 13;
 NAxisMotion mySensor;         //Object that for the sensor 
 unsigned long lastStreamTime = 0;     //To store the last streamed time stamp
 const int streamPeriod = 20;          //To stream at 50Hz without using additional timers (time period(ms) =1000/frequency(Hz))
+int i=0;
+char serial;
 
 void setup() //This code is executed once
-{    
+{ 
   //Peripheral Initialization
   Serial.begin(115200);           //Initialize the Serial Port to view information on the Serial Monitor
   I2C.begin();                    //Initialize I2C communication to the let the library communicate with the sensor.
@@ -68,13 +71,24 @@ void setup() //This code is executed once
 
 void loop() //This code is looped forever
 {
+  
   if ((millis() - lastStreamTime) >= streamPeriod)
   {
-    lastStreamTime = millis();    
     mySensor.updateEuler();        //Update the Euler data into the structure of the object
     mySensor.updateCalibStatus();
-    if(Serial.read() > 0)
+    serial=Serial.available();
+  if(Serial.read() > 0)
                 {
+                 
+                  if(serial>3)
+                  {
+                   Serial.print("1");
+                   delay(1000);
+                      wdt_disable();
+                      wdt_enable(WDTO_15MS);
+                      while (1) {}
+                  }
+                  
                   //digitalWrite(LED,HIGH);
       //Update the Calibration Status
 
